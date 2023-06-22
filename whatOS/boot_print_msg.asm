@@ -21,7 +21,7 @@ print:
 print_char:
     mov ah, 0Eh
     int 0x10
-    res
+    ret
 
 
 message: db 'Welcome to the whatOS bootloader.', 0
