@@ -1,9 +1,15 @@
 ORG 0
 BITS 16
+_start:
+    jmp short start
+    nop
 
-jmp 0x7c0:start
+times 33 db 0
 
 start:
+jmp 0x7c0:start2
+
+start2:
     cli ; disable interrupts
     mov ax, 0x7c0   ; set up segments,
     mov ds, ax      ; setting ds to 0x7c0  
@@ -37,5 +43,3 @@ message: db 'Welcome to the whatOS bootloader.', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
-
-
