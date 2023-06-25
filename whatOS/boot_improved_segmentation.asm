@@ -1,12 +1,19 @@
 ORG 0
 BITS 16
 
+jmp 0x7c0:start
+
 start:
     cli ; disable interrupts
-    mov ax, 0x7c0
-    mov ds, ax
-    mov es, ax
-    sti ; enable interrupts   
+    mov ax, 0x7c0   ; set up segments,
+    mov ds, ax      ; setting ds to 0x7c0  
+    mov es, ax      ; setting es to 0x7c0
+    mov ax, 0x00    ; clear out ax
+    mov ss, ax      ; setting ss to 0x00
+    mov sp, 0x7c00  ; setting sp to 0x7c00
+    sti ; enable interrupts
+
+
     mov si, message
     call print
     jmp $
