@@ -4,6 +4,13 @@ _start:
     jmp short start
     nop
 
+handle_zero:
+    mov ah, 0Eh
+    mov al, 'A'
+    mov bx, 0x00
+    int 0x10
+    iret
+
 times 33 db 0
 
 start:
@@ -18,6 +25,12 @@ start2:
     mov ss, ax      ; setting ss to 0x00
     mov sp, 0x7c00  ; setting sp to 0x7c00
     sti ; enable interrupts
+
+    ;ss is used here because it starts at 0...
+    mov word[ss:0x00], handle_zero          ; set the offset to our handler code
+    mov word[ss:0x02], 0x7c0                ; set the segment to our bootloader CS
+
+    int 0
 
     mov si, message
     call print
@@ -43,5 +56,3 @@ message: db 'Welcome to the lameOS bootloader.', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
-
-
