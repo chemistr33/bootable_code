@@ -55,43 +55,37 @@ void print(const char *str) {
 
 void kernel_main() {
 
-  term_initialize();
+  //term_initialize();
 
-  print("Welcome to LameOS!\nHello!\nNow with Newlines!\nGoodbyte and GoodNight.\n");
-
-  idt_init();
-
-}
-
-/*
- // Absolutely Insane Color Show :)
+  // print("Welcome to LameOS!\nHello!\nNow with Newlines!\nGoodbyte and GoodNight.\n");
  volatile char *video_memory = (char *)0xb8000;
 
- for (int character = 0; character < 256; ++character) { // All Characters
-   for (int color = 0; color < 256; ++color) {           // All Colors
-     for (int cell = 0; cell < 80 * 25; ++cell) {        // All Cells
-       video_memory[cell * 2] = character;               // Set character
-       video_memory[cell * 2 + 1] = color;               // Set color
-     }
-   }
- }
-*/
+  
+  forever:
+  for (int character = 0; character < 256; ++character) { // All Characters
+    for (int color = 0; color < 16; ++color) {            // All Colors
+      for (int cell = 0; cell < 80 * 25; ++cell) {        // All Cells
+        video_memory[cell * 2] = character;               // Set character
+        video_memory[cell * 2 + 1] = color;               // Set color
+      }
+    }
+  }
+  goto forever;
+}
+  // idt_init();
 
-//   video_mem[0] = 0x0F41;
 
-//   for (int y = 0; y < VGA_HEIGHT; y++) {
-//     for (int x = 0; x < VGA_WIDTH; x++) {
-//       if (x == 0 && y == 0) {
-//         continue;
-//       }
-//       if (x == VGA_WIDTH && y == VGA_HEIGHT) {
-//         break;
-//       }
-//       term_putchar(x, y, '.', 4);
-//     }
-//   }
-
-//   video_mem[1999] = term_make_char('Z', 15);
-
-//   term_writechar('A', 15);
-//   term_writechar('B', 15);
+#if 0
+  // The OFFICIAL Color Show Comment :) 
+  forever:
+  for (int character = 0; character < 256; ++character) { // All Characters
+    for (int color = 0; color < 16; ++color) {            // All Colors
+      for (int cell = 0; cell < 80 * 25; ++cell) {        // All Cells
+        video_memory[cell * 2] = character;               // Set character
+        video_memory[cell * 2 + 1] = color;               // Set color
+      }
+    }
+  }
+  goto forever;
+}
+#endif
