@@ -32,9 +32,16 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/io/io.asm.o: ./src/io/io.asm
 	nasm -f elf -g ./src/io/io.asm -o ./build/io/io.asm.o
+
 clean:
 	rm -rf ./bin/boot.bin
 	rm -rf ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	rm -rf $(FILES)
 	rm -rf ./build/kernelfull.o 
+
+docs:
+	rm -rf doc/output/*
+	cd ./doc && doxygen Doxyfile
+
+.PHONY: docs

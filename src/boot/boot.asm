@@ -171,7 +171,7 @@ ata_lba_read:
 ; |        ATA LBA Address (32 bits)          |
 ; +-------------------+-----------------------+
 ;
-;   1F0 (Read and Write): Data Register
+;   1F0 (Read and Write): Data Register, *each time it's R/W, IDE ctrlr advances
 ;   1F1 (Read): Error Register
 ;   1F1 (Write): Features Register
 ;   1F2 (Read and Write): Sector Count Register

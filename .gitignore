@@ -1,2 +1,12 @@
+# Compiled Object files
 *.0
 *.bin
+
+# Ignore everything under doc/output/html
+/doc/output/html/*
+
+# Ignore everything under doc/output/latex
+/doc/output/latex/*
+
+# But do not ignore doc/output/latex/refman.pdf
+!/doc/output/latex/refman.pdf
