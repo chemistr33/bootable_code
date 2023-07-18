@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "idt/idt.h"
+#include "memory/heap/kheap.h"
 
 
 /**
@@ -169,7 +170,16 @@ kernel_main ()
   term_initialize ();
   print ("Welcome to LameOS!\n\nTesting...");
 
+  kheap_init();
+
   idt_init ();
+
+  void *ptr = kmalloc(50);
+  void *ptr2 = kmalloc(5000);
+  if(ptr || ptr2)
+  {
+    ;
+  }
 
 
 }
