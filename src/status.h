@@ -6,5 +6,4 @@
 #define EINVARG       2
 #define ENOMEM        3
 
-
 #endif
