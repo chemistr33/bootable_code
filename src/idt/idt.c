@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "../config.h"
+#include "../io/io.h"
 #include "../kernel.h"
 #include "../memory/memory.h"
 
@@ -23,13 +24,28 @@ struct idtr_desc idtr_descriptor;
  * The wrapper fct is called from within idt_init. It loads the IDTR by
  * calling the assembly function idt_load. By loading the kernel IDTR struct,
  * the processor knows where the kernel IDT struct-array is located in memory.
- * @note The assembly routine is exposed to the linker by `global idt_load` in 
+ * @note The assembly routine is exposed to the linker by `global idt_load` in
  * the idt.asm file.
  * @see idt_init in src/idt/idt.c
  * @see idt_load in src/idt/idt.asm
  * @param ptr a void pointer to the IDTR descriptor
  */
 extern void idt_load (struct idtr_desc *ptr);
+extern void int21h ();
+extern void no_interrupt ();
+
+void
+int21h_handler ()
+{
+  print ("Keyboard pressed...\n");
+  outb (0x20, 0x20);
+}
+
+void
+no_interrupt_handler ()
+{
+  outb (0x20, 0x20);
+}
 
 /**
  * @brief Interrupt Zero Definition.
@@ -71,11 +87,13 @@ idt_set (int interrupt_no, void *address)
 /**
  * @brief Initialize Kernel Interrupt Descriptor Table (IDT).
  * Initializes kernel IDT array by zeroing every descpritor in the array,
- * Sets the IDTR descriptor limit and base, Intended to set each IDT descriptor,
- * but currently only sets the interrupt descriptor 0, Concludes Loads the IDTR by
- * calling wrapper function idt_load, for the asm function of the same name. The
- * asm routine idt_load loads the IDTR with the kernel IDTR struct.
- * @note There is a 1:1 mapping between the IDT and the CPU's interrupt numbers.
+ * Sets the IDTR descriptor limit and base, Intended to set each IDT
+ * descriptor, but currently only sets the interrupt descriptor 0, Concludes
+ * Loads the IDTR by calling wrapper function idt_load, for the asm function of
+ * the same name. The asm routine idt_load loads the IDTR with the kernel IDTR
+ * struct.
+ * @note There is a 1:1 mapping between the IDT and the CPU's interrupt
+ * numbers.
  * @see memset in src/memory/memory.c
  * @see idt_set in src/idt/idt.c
  * @see idt_load in src/idt/idt.asm
@@ -88,11 +106,22 @@ idt_init ()
   idtr_descriptor.limit = sizeof (idt_descriptors) - 1;
   idtr_descriptor.base = (uint32_t)idt_descriptors;
 
-// Configure any kernel interrupts here
-//--------------------------------------
+  // Configure any kernel interrupts here
+  //--------------------------------------
+
+  // set all interrupts to no_interrupt_handler by default
+  for (int i = 0; i < LAMEOS_TOTAL_INTERRUPTS; i++)
+    {
+      idt_set (i, no_interrupt_handler);
+    }
+
+  // set the interrupt 0 handler, divide by zero
   idt_set (0, idt_zero);
-//--------------------------------------
-  
+
+  // set the interrupt 0x21 handler, keyboard
+  idt_set (0x21, int21h);
+  //--------------------------------------
+
   // load the IDT
   idt_load (&idtr_descriptor);
 }

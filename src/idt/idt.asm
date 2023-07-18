@@ -1,5 +1,11 @@
 section .asm
+
+extern int21h_handler
+extern no_interrupt_handler
+
+global int21h
 global idt_load
+global no_interrupt
 
 idt_load:
     push ebp         ; Save old ebp of caller (idt_init)
@@ -7,10 +13,24 @@ idt_load:
 
     mov ebx, [ebp+8] ; Get address of idtr_descriptor from stack
     lidt [ebx]       ; Load idtr_descriptor into idtr register with `lidt`
-    
     pop ebp          ; Restore old ebp of caller (idt_init)
     ret              ; Return to caller (idt_init)
 
+int21h:
+    cli
+    pushad
+    call int21h_handler
+    popad
+    sti
+    iret
+
+no_interrupt:
+    cli
+    pushad
+    call no_interrupt_handler
+    popad
+    sti
+    iret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Stack Diagram ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                              ;

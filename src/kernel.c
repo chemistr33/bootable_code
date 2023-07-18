@@ -1,7 +1,8 @@
 #include "kernel.h"
-#include "idt/idt.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "idt/idt.h"
+
 
 /**
  * @brief Pointer to VGA Framebuffer.
@@ -166,8 +167,11 @@ void
 kernel_main ()
 {
   term_initialize ();
+  print ("Welcome to LameOS!\n\nTesting...");
+
   idt_init ();
-  lame_color_show ();
+
+
 }
 
 #if 0
