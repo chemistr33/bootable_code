@@ -65,9 +65,10 @@ struct heap_table
 /**
  * @struct heap
  * @brief Defines the physical structure of the heap.
- * The heap is a contiguous block of memory that is 100MB in size, and
- * grows upwards towards 116MB. The heap contains a pointer to the heap table,
- * and the start address of the heap.
+ * The heap is loaded at 16MB and is a contiguous 100MB block of memory,
+ * growing upwards towards 116MB. The heap data structure contains a pointer to
+ * the heap table data structure, and a void pointer the start address of the
+ * heap physical memory.
  * @see kheap.c
  * @note Allocated in the .bss section
  */
