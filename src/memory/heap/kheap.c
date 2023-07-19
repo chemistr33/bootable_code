@@ -46,15 +46,26 @@ struct heap_table kernel_heap_table;
 void
 kheap_init ()
 {
+  // Calculate the total number of entries in the heap table. (25,600)
   int total_table_entries = LAMEOS_HEAP_SIZE_BYTES / LAMEOS_HEAP_BLOCK_SIZE;
+
+  // Set entries pointer to the start of the heap table. (32KB)
   kernel_heap_table.entries
       = (HEAP_BLOCK_TABLE_ENTRY *)(LAMEOS_HEAP_TABLE_ADDRESS);
+
+  // Set the total # of available entries in global heap table to 25,600.
   kernel_heap_table.total = total_table_entries;
 
+  // End address of heap is the start address + the size of the heap.
+  // 16MB + 100MB = 116MB
   void *end = (void *)(LAMEOS_HEAP_ADDRESS + LAMEOS_HEAP_SIZE_BYTES);
 
+  // Create the heap by calling heap_create() with the heap object, the start
+  // address of the heap, the end address of the heap, and the heap table.
   int res = heap_create (&kernel_heap, (void *)(LAMEOS_HEAP_ADDRESS), end,
                          &kernel_heap_table);
+  
+  // print a message if the heap creation fails...
   if (res < 0)
     {
       print ("Failed to create heap\n");
@@ -78,6 +89,7 @@ kheap_init ()
 void *
 kmalloc (size_t size)
 {
+  // Wrapper function for heap_malloc() in 'heap.c'.
   return heap_malloc (&kernel_heap, size);
 }
 

@@ -8,7 +8,7 @@ extern kernel_main      ; Tell linker kernel_main is defined elsewhere
 CODE_SEG equ 0x08       ; 0x08 is the code segment offset in the GDT
 DATA_SEG equ 0x10       ; 0x10 is the data segment offset in the GDT
 _start:
-    mov ax, DATA_SEG    ; Set up the data segment registers explicityly
+    mov ax, DATA_SEG    ; Set up the data segment registers explicitly
     mov ds, ax          ; data segment 
     mov es, ax          ; extra segment
     mov fs, ax          ; file segment (typically for Thread local storage)

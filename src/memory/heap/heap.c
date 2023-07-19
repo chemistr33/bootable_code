@@ -49,13 +49,21 @@ static int
 heap_check_table (void *ptr, void *end, struct heap_table *table)
 {
   int res = 0;
+
+  // Calculate total bytes in heap.
   size_t table_size = (size_t)(end - ptr);
+
+  // Calculate total blocks in heap.
   size_t total_blocks = table_size / LAMEOS_HEAP_BLOCK_SIZE;
+
+  // Compare total calculated blocks in heap with total blocks in heap table.
   if (table->total != total_blocks)
     {
       res = -EINVARG;
       goto out;
     }
+
+// return 0 if heap table is valid, -EINVARG otherwise
 out:
   return res;
 }
@@ -78,10 +86,10 @@ out:
  *
  * @param ptr The pointer whose alignment is to be verified. It could point to
  * any arbitrary location within the heap.
- * @return true if the pointer is aligned correctly with respect to the heap
- * block size, ensuring that it points to the start of a block.
- * @return false if the pointer is not aligned, indicating it may point to the
- * middle of a block or some other misaligned location.
+ * @return true (1) if the pointer is aligned correctly with respect to the
+ * heap block size, ensuring that it points to the start of a block.
+ * @return false (0) if the pointer is not aligned, indicating it may point to
+ * the middle of a block or some other misaligned location.
  * @see heap_create()
  */
 static bool
@@ -133,23 +141,30 @@ int
 heap_create (struct heap *heap, void *ptr, void *end, struct heap_table *table)
 {
   int res = 0;
+
+  //  if ( !0 or !0) return -EINVARG;
   if (!heap_check_alignment (ptr) || !heap_check_alignment (end))
     {
       res = -EINVARG;
       goto out;
     }
 
+  // wipe heap object, set .saddr and .table to `ptr` and `table` respectively.
   memset (heap, 0, sizeof (struct heap));
   heap->saddr = ptr;
   heap->table = table;
 
+  // check if newly minted heap table is valid.
   res = heap_check_table (ptr, end, table);
   if (res < 0)
     {
       goto out;
     }
 
+  // calculate size of heap table in bytes (25.6KB).
   size_t table_size = sizeof (HEAP_BLOCK_TABLE_ENTRY) * table->total;
+
+  // starting from first entry, set all entry-bytes to 0x00 (ENTRY_FREE).
   memset (table->entries, HEAP_BLOCK_TABLE_ENTRY_FREE, table_size);
 
 out:
@@ -260,12 +275,17 @@ heap_get_entry_type (HEAP_BLOCK_TABLE_ENTRY entry)
 int
 heap_get_start_block (struct heap *heap, uint32_t total_blocks)
 {
+  // make a dummy heap table in local-scope.
   struct heap_table *table = heap->table;
+
+  // bc = consecutive free block count, bs = start index of free block sequence
   int bc = 0;
   int bs = -1;
 
+  //########################### BEGIN LOOP ####################################
   for (size_t i = 0; i < table->total; i++)
     {
+      // if entry != 0, reset bc to 0 and bs to -1, and continue.
       if (heap_get_entry_type (table->entries[i])
           != HEAP_BLOCK_TABLE_ENTRY_FREE)
         {
@@ -273,20 +293,27 @@ heap_get_start_block (struct heap *heap, uint32_t total_blocks)
           bs = -1;
           continue;
         }
+
+      // if entry == 0 (is free), set bs to i, increment bc.
       if (bs == -1)
         {
           bs = i;
         }
       bc++;
+
+      // if bc == total_blocks you found enough free blocks, break.
       if (bc == total_blocks)
         {
           break;
         }
     }
+  //############################# END LOOP ####################################
+
   if (bs == -1)
     {
       return -ENOMEM;
     }
+
   return bs;
 }
 
@@ -320,6 +347,7 @@ heap_get_start_block (struct heap *heap, uint32_t total_blocks)
 void *
 heap_block_to_address (struct heap *heap, uint32_t block)
 {
+  // absolute address = offset + (block * block_size)
   return heap->saddr + (block * LAMEOS_HEAP_BLOCK_SIZE);
 }
 
@@ -351,6 +379,7 @@ heap_block_to_address (struct heap *heap, uint32_t block)
 void
 heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
 {
+  // Because we start counting arrays from 0, subtract 1 from total...
   int end_block = (start_block + total_blocks) - 1;
 
   HEAP_BLOCK_TABLE_ENTRY entry
@@ -364,7 +393,7 @@ heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
     {
       heap->table->entries[i] = entry;
       entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
-      if (i != end_block - 1)
+      if (i != end_block)
         {
           entry |= HEAP_BLOCK_HAS_NEXT;
         }
@@ -411,15 +440,19 @@ heap_malloc_blocks (struct heap *heap, uint32_t total_blocks)
 {
   void *address = 0;
 
+  // Call heap_get_start_block() to return valid integral block index.
   int start_block = heap_get_start_block (heap, total_blocks);
+
+  // Check if the block index is valid (note -ENOMEM is -3)
   if (start_block < 0)
     {
       goto out;
     }
 
+  // Calculate absolute memory address of given block index.
   address = heap_block_to_address (heap, start_block);
 
-  // Mark the blocks as taken
+  // Mark the blocks as taken. Taken block value (0x1).
   heap_mark_blocks_taken (heap, start_block, total_blocks);
 
 out:
@@ -499,8 +532,14 @@ heap_address_to_block (struct heap *heap, void *address)
 void *
 heap_malloc (struct heap *heap, size_t size)
 {
+  // Align size-byte argument to upper block size as bytes.
   size_t aligned_size = heap_align_value_to_upper (size);
+
+  // Convert upper-aligned size in bytes to number of blocks.
   uint32_t total_blocks = aligned_size / LAMEOS_HEAP_BLOCK_SIZE;
+
+  // Call heap_malloc_blocks() to allocate the blocks with &kernel_heap and
+  // total_blocks as args.
   return heap_malloc_blocks (heap, total_blocks);
 }
 

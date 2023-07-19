@@ -1,3 +1,6 @@
 add-symbol-file "../build/kernelfull.o" 0x100000
-
 target remote | qemu-system-x86_64 -hda ./os.bin -gdb stdio -S
+
+GDB might work better in a 32-bit mode with this...
+
+target remote | qemu-system-i386 -hda ./os.bin -gdb stdio -S
