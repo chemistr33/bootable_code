@@ -4,3 +4,13 @@ target remote | qemu-system-x86_64 -hda ./os.bin -gdb stdio -S
 GDB might work better in a 32-bit mode with this...
 
 target remote | qemu-system-i386 -hda ./os.bin -gdb stdio -S
+
+***** Learned about a fix to GDB addresses & symbols ********
+
+add-symbol-file ../build/kernelfull-elf.o 0x100000
+target remote | qemu-system-i386 -hda ./os.bin -gdb stdio -S
+
+*************************************************************
+
+Also, set the breakpoint correctly before continuing for the
+first time when running a debug session.
