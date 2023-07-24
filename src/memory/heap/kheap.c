@@ -16,7 +16,8 @@
  * @brief Global heap object used by the kernel.
  *
  * This is the heap object that the kernel uses to allocate and deallocate
- * memory.
+ * memory. Loaded into the kernel's data segment at 
+ * 
  */
 struct heap kernel_heap;
 

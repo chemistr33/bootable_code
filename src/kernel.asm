@@ -7,6 +7,7 @@ extern kernel_main      ; Tell linker kernel_main is defined elsewhere
 
 CODE_SEG equ 0x08       ; 0x08 is the code segment offset in the GDT
 DATA_SEG equ 0x10       ; 0x10 is the data segment offset in the GDT
+
 _start:
     mov ax, DATA_SEG    ; Set up the data segment registers explicitly
     mov ds, ax          ; data segment 
@@ -29,13 +30,11 @@ _start:
     out 0x21, al        ; Send command to put PIC in x86 protected mode
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    sti
-
     call kernel_main    ; Call the kernel's main function
 
     jmp $               ; After kernel_main returns, hang
 
-times 512-($ - $$) db 0 ; Pad remainder of boot sector with 0s
+times 512-($ - $$) db 0 ; Pad remainder of sector with 0s
                         ; for a total size of 512B to keep disk driver happy
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

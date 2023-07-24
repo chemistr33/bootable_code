@@ -10,6 +10,7 @@
  * Each IDT descriptor corresponds to a specific interrupt or exception and
  * provides the necessary information for the processor to handle them
  * correctly.
+ * @note An IDT descriptor is 8 bytes long.
  */
 struct idt_desc
 {
@@ -42,5 +43,7 @@ struct idtr_desc
  * @see idt_init in src/idt/idt.c
  */
 void idt_init ();
+void enable_interrupts ();
+void disable_interrupts ();
 
 #endif

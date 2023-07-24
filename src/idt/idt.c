@@ -1,14 +1,15 @@
 #include "idt.h"
-#include "../config.h"
-#include "../io/io.h"
-#include "../kernel.h"
-#include "../memory/memory.h"
+#include "config.h"
+#include "io/io.h"
+#include "kernel.h"
+#include "memory/memory.h"
 
 /**
  * @brief Array of 512 IDT Descriptors.
  * The kernel maintains an array of 512 IDT descriptors. Each descriptor
  * corresponds to a specific interrupt or exception. The array is initialized
  * by idt_init.
+ * @note 
  */
 struct idt_desc idt_descriptors[LAMEOS_TOTAL_INTERRUPTS];
 
@@ -37,7 +38,7 @@ extern void no_interrupt ();
 void
 int21h_handler ()
 {
-  print ("Keyboard pressed...\n");
+  print ("Key pressed.\n");
   outb (0x20, 0x20);
 }
 
@@ -57,7 +58,6 @@ no_interrupt_handler ()
 void
 idt_zero ()
 {
-  term_initialize ();
   print ("ERROR: divide by zero exception occurred.\n");
 }
 
@@ -112,7 +112,7 @@ idt_init ()
   // set all interrupts to no_interrupt_handler by default
   for (int i = 0; i < LAMEOS_TOTAL_INTERRUPTS; i++)
     {
-      idt_set (i, no_interrupt_handler);
+      idt_set (i, no_interrupt);
     }
 
   // set the interrupt 0 handler, divide by zero

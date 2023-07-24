@@ -1,12 +1,7 @@
 /**
  * @file heap.h
- * @brief Heap management interface.
- *
- * This file declares the interface for the heap management functions.
- * These functions include memory allocation, memory deallocation,
- * heap initialization, and block address calculation, etc.
- * This header file is intended to be used by kernel modules
- * that need direct control over heap management.
+ * @brief Heap management interface constants, typedefs, structs, and function
+ * prototypes.
  */
 #ifndef HEAP_H
 #define HEAP_H
@@ -42,39 +37,38 @@
 
 /**
  * @typedef HEAP_BLOCK_TABLE_ENTRY
- * Defines a type for heap block table entries.
+ * Defines a typedef for heap block table entries as unsigned chars (1 byte).
  */
 typedef unsigned char HEAP_BLOCK_TABLE_ENTRY;
 
 /**
  * @struct heap_table
- * @brief Defines the logical structure of the heap table. (Allocation)
- * The heap table is loaded at 32KB in memory, and is 25,600 bytes in size.
- * Each index in the table represents a 4096B block in the heap. 0x00 means
- * free, 0x01 means taken, 0x80 means has next, 0x40 means block is first in
- * allocation series.
- * @see kheap.c
+ * @brief Defines the allocation table and available memory blocks of the heap.
+ * Loaded into memory at 32KB. 
+ * @details Possible entry values:
+ *  0xC1 (193) - Taken, First, Has-Next
+ *  0x81 (129) - Taken, Has-Next
+ *  0x01   (1) - Taken (Implicit Last)
+ *  0x00   (0) - Free
+ * @see kernel_heap_table
  * @note Allocated in the .bss section
  */
 struct heap_table
 {
-  HEAP_BLOCK_TABLE_ENTRY *entries;
-  size_t total;
+  HEAP_BLOCK_TABLE_ENTRY *entries; /**Pointer to the entries array.*/
+  size_t total; /**Total blocks in the heap, initialized later to 25600.*/
 };
 
 /**
  * @struct heap
- * @brief Defines the physical structure of the heap.
- * The heap is loaded at 16MB and is a contiguous 100MB block of memory,
- * growing upwards towards 116MB. The heap data structure contains a pointer to
- * the heap table data structure, and a void pointer the start address of the
- * heap physical memory.
- * @see kheap.c
+ * @brief Defines the physical structure of the heap. Contains a pointer to its
+ * heap table and the starting address of the physical heap memory.
+ * @see kernel_heap
  * @note Allocated in the .bss section
  */
 struct heap
 {
-  struct heap_table *table;
+  struct heap_table *table; /**Pointer to the heap table.*/
   void *saddr;
 };
 

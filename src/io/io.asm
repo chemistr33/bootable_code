@@ -57,7 +57,7 @@ outw:
 
 
 ;       _______________
-;       |...          | <-   ...         Higher Memory (Towards bottom of stack)
+;       |...          | <-   ...        Higher Memory (Towards bottom of stack)
 ;       |ebp+(4n)     | <-   nth argument
 ;       |...          | <-   ...
 ;       |ebp+12       | <-   second argument (arg2)

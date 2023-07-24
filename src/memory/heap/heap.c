@@ -3,10 +3,8 @@
  * @brief Heap management implementation.
  *
  * This file implements the interface defined in heap.h. It provides
- * functionality for heap management, including memory allocation, memory
- * deallocation, heap initialization, block address calculation, and so on. The
- * heap management strategies are used throughout the operating system's
- * kernel, including memory management and task scheduling.
+ * functionality for heap management,  memory allocation, memory and memory
+ * deallocation, heap initialization, block address calculation, and so forth.
  */
 #include "heap.h"
 #include "kernel.h"
@@ -16,23 +14,9 @@
 
 /**
  * @brief Checks if the heap table has a valid block count.
- * Called by heap_create(). It compares the number of blocks physically present
- * in the heap with the block count as indicated by the heap table structure.
- * Is a 'sanity check' to ensure that the heap table is valid at the point of
- * heap creation.
- *
- * The function works by first calculating the total size of the heap. This is
- * accomplished by performing pointer arithmetic between the end and start
- * pointers of the heap. It then translates this size into the number of blocks
- * by dividing the total heap size by the size of a single heap block
- * (LAMEOS_HEAP_BLOCK_SIZE). The result of this division yields the total
- * number of blocks in the heap.
- *
- * Next, the function compares the computed total number of blocks with the
- * total number of blocks as stated in the heap table. If the two totals do not
- * match, the function sets the result to -EINVARG, signalling an invalid
- * argument error. Otherwise, the function returns 0, indicating a valid heap
- * table.
+ * Calculates the total number of blocks in the heap and compares it with the
+ * total number of blocks in the heap table. If the two values are equal, the
+ * test passes and returns 0, otherwise it returns -EINVARG.
  *
  * @param ptr Pointer to the start of the heap. It provides the base address
  * for the heap memory.
@@ -41,8 +25,9 @@
  * @param table Pointer to the heap table. The heap table keeps track of the
  * total number of blocks in the heap.
  * @return int Returns 0 if the heap table is valid, -EINVARG otherwise.
- *              -EINVARG is a flag indicating that an invalid argument was
+ * @note -EINVARG is a flag indicating that an invalid argument was
  * encountered.
+ * @note -EINVARG = -2
  * @see heap_create()
  */
 static int
@@ -71,18 +56,11 @@ out:
 /**
  * @brief Validates if a given pointer is correctly aligned to the heap block
  * size.
- *
  * Invoked by heap_create(), this function checks whether the supplied pointer
- * adheres to the alignment requirements of the heap block size. In a correctly
- * functioning heap, each block of memory must start at an address that is a
- * multiple of the heap block size (LAMEOS_HEAP_BLOCK_SIZE). To determine
- * alignment, the function calculates the modulus of the pointer's value and
- * the heap block size. In memory arithmetic, a pointer that is correctly
- * aligned to a particular block size will have a modulus of zero when its
- * value is divided by the block size. Therefore, if the modulus is zero, the
- * function deems the pointer correctly aligned and returns true. Conversely,
- * if the modulus is non-zero, it denotes misalignment and the function returns
- * false.
+ * adheres to the alignment requirements of the heap block size. If the
+ * pointer, cast to unsigned int, mod 4096 is equal to 0, the pointer is
+ * aligned, return true (1). Otherwise, the pointer is not aligned, return
+ * false (0).
  *
  * @param ptr The pointer whose alignment is to be verified. It could point to
  * any arbitrary location within the heap.
@@ -105,21 +83,17 @@ heap_check_alignment (void *ptr)
  * a series of validation checks and initializations to ensure the heap is
  * ready for use.
  *
- * The function begins by verifying the alignment of the start (ptr) and end
- * pointers of the heap. If either pointer is not correctly aligned to the heap
- * block size, the function aborts the heap creation process and returns
- * -EINVARG to signal the alignment error.
+ * Begins by verifying the alignment of the start (ptr) and end
+ * pointers of the heap. If either pointer isn't aligned, abort and return
+ * -EINVARG.
  *
- * If both pointers are correctly aligned, the function proceeds to initialize
- * the heap object. It first wipes the heap object's memory using memset,
- * setting all bytes to zero. This ensures a clean, predictable state for the
- * new heap object. Then, it sets the start address of the heap (saddr) and
- * associates the heap object with its heap table.
+ * If both pointers are correctly aligned, proceeds with initialization.
+ * Wipes the heap object's memory using memset, setting all bytes to zero.
+ * Then, it sets the start address of the heap (saddr) and associates the heap
+ * object with its heap table.
  *
  * After initializing the heap object, the function validates the heap table by
- * calling heap_check_table(). If this function reports an error (by returning
- * a value less than 0), the function halts the creation process and returns
- * the error code.
+ * calling heap_check_table().
  *
  * If the heap table is valid, the function then initializes the heap table. It
  * calculates the size of the table in bytes and sets all entries in the heap
@@ -164,7 +138,7 @@ heap_create (struct heap *heap, void *ptr, void *end, struct heap_table *table)
   // calculate size of heap table in bytes (25.6KB).
   size_t table_size = sizeof (HEAP_BLOCK_TABLE_ENTRY) * table->total;
 
-  // starting from first entry, set all entry-bytes to 0x00 (ENTRY_FREE).
+  // init heap table of heap object, set all entries to 0x00 (entry free).
   memset (table->entries, HEAP_BLOCK_TABLE_ENTRY_FREE, table_size);
 
 out:
@@ -174,24 +148,6 @@ out:
 /**
  * @brief Adjusts a provided value to align with the next upper heap block
  * boundary.
- *
- * Invoked by heap_malloc(), this function ensures that the provided value
- * (val), which represents an end pointer within the heap, is aligned with a
- * heap block boundary. This is critical for maintaining consistency within the
- * heap structure and enabling efficient memory allocation.
- *
- * The alignment process involves checking if the provided value is already a
- * multiple of the heap block size (LAMEOS_HEAP_BLOCK_SIZE). If it is, no
- * adjustment is necessary, and the function simply returns the original value.
- *
- * However, if the value is not a multiple of the block size (i.e., it falls
- * within a block), the function needs to adjust it. It first subtracts the
- * remainder of the value divided by the block size from the value itself. This
- * effectively 'rounds down' the value to the start of the current heap block.
- * Then, it adds the size of a full heap block to this result. The final value
- * is thus rounded up to the start of the next heap block, ensuring alignment
- * with the block boundary.
- *
  * @param val The end pointer value to be rounded up to the next heap block
  * boundary. This value should be within the heap memory range.
  * @return uint32_t Returns the end pointer value adjusted to align with the
@@ -202,11 +158,12 @@ out:
 static uint32_t
 heap_align_value_to_upper (uint32_t val)
 {
+  // If val is already aligned, return val.
   if ((val % LAMEOS_HEAP_BLOCK_SIZE) == 0)
     {
       return val;
     }
-
+  // Else, return val rounded up to next upper block boundary.
   val = (val - (val % LAMEOS_HEAP_BLOCK_SIZE));
   val += LAMEOS_HEAP_BLOCK_SIZE;
   return val;
@@ -214,21 +171,10 @@ heap_align_value_to_upper (uint32_t val)
 
 /**
  * @brief Retrieves the status of a heap block table entry.
- *
- * This utility function extracts the type (status) of a heap block table
- * entry. It performs a bitwise AND operation with the hexadecimal value 0x0F
- * on the provided entry, effectively isolating the lower 4 bits. These bits
- * represent the status of the block.
- *
- * The usage of the lower 4 bits for block status enables efficient storage and
- * retrieval of this information. Possible status values include 0x00 for a
- * free block and 0x01 for a taken (allocated) block.
- *
- * It's important to note that this function interprets the status of a single
- * heap block, not an array or sequence of blocks. It aids in the process of
- * finding, allocating, and freeing blocks within the heap.
- *
- * @param entry The heap block table entry to examine. This value corresponds
+ * Performs bitwise AND operation with 0x0F mask isolating the lower 4 bits of
+ * the entry. If the result is 0, the block is free, return 0. If the result is
+ * 1, the block is taken, return 1.
+ * @param entry The heap table entry to examine. This value corresponds
  * to a single block within the heap.
  * @return int Returns 0 if the heap block is free, or 1 if the block is taken.
  * @see heap_get_start_block()
@@ -241,29 +187,10 @@ heap_get_entry_type (HEAP_BLOCK_TABLE_ENTRY entry)
 
 /**
  * @brief Finds a contiguous sequence of free blocks in the heap.
+ * Starts by naming a struct pointer to the global heap table and two ints
+ * bc = consecutive free block count, bs = start index of free block sequence.
  *
- * This function is invoked when trying to allocate a chunk of memory from the
- * heap. It scans the heap's block table for a contiguous sequence of free
- * blocks that can accommodate the requested memory size. The total size of the
- * memory request is represented in terms of the number of blocks
- * (total_blocks).
- *
- * The search process starts from the beginning of the heap block table,
- * iterating through each block entry. It maintains a count of consecutive free
- * blocks (bc) and the start index of the first block in this free sequence
- * (bs).
- *
- * For each block, it uses the heap_get_entry_type() function to check if the
- * block is free. If a block is not free, it resets the free block count and
- * start index to start the search anew from the next block. If a block is free
- * and it's the first in a new sequence, the function records its index as the
- * start index.
- *
- * The function keeps incrementing the free block count until it reaches the
- * total required block count or until it encounters a taken block. If it
- * successfully finds a sufficient sequence of free blocks, it returns the
- * start index of this sequence. Otherwise, it returns an -ENOMEM error to
- * indicate insufficient memory in the heap.
+ * Then iterates over
  *
  * @param heap Pointer to the heap object. This heap contains the block table
  * to search.
@@ -299,6 +226,7 @@ heap_get_start_block (struct heap *heap, uint32_t total_blocks)
         {
           bs = i;
         }
+
       bc++;
 
       // if bc == total_blocks you found enough free blocks, break.
@@ -319,23 +247,6 @@ heap_get_start_block (struct heap *heap, uint32_t total_blocks)
 
 /**
  * @brief Converts a heap block index into its corresponding memory address.
- *
- * This function assists in the conversion of a relative block index within
- * the heap into an absolute memory address. The function achieves this by
- * taking the start address of the heap and adding the product of the block
- * index and the predefined size of each heap block (LAMEOS_HEAP_BLOCK_SIZE).
- *
- * This form of address calculation is central to the functioning of a heap
- * memory manager, enabling the translation from an abstract block index to a
- * physical memory address that can be utilized for storing and retrieving
- * data. This function is typically invoked during the memory allocation
- * process, where specific blocks within the heap are allocated to meet a
- * requested memory size.
- *
- * It's important to note that this function doesn't check if the block index
- * is within the valid range of the heap or whether the block at the given
- * index is free or allocated.
- *
  * @param heap Pointer to the heap object. The base address for the heap memory
  * resides in this structure.
  * @param block The block index within the heap to be translated into a memory
@@ -347,34 +258,25 @@ heap_get_start_block (struct heap *heap, uint32_t total_blocks)
 void *
 heap_block_to_address (struct heap *heap, uint32_t block)
 {
-  // absolute address = offset + (block * block_size)
+  // absolute address = offset + (block index * block_size)
   return heap->saddr + (block * LAMEOS_HEAP_BLOCK_SIZE);
 }
 
 /**
  * @brief Marks a range of blocks in the heap as taken.
- *
- * This function is used when allocating memory from the heap. It receives the
- * index of the first block and the total number of blocks to be marked as
- * taken. It then proceeds to mark these blocks in the heap's block table as
- * taken.
- *
- * The marking process involves setting the status of each block entry in the
- * heap's block table. The first block is marked with the
- * HEAP_BLOCK_TABLE_ENTRY_TAKEN and HEAP_BLOCK_IS_FIRST flags. If there are
- * multiple blocks, the first block also receives the HEAP_BLOCK_HAS_NEXT flag
- * to indicate that the allocated sequence of blocks continues in the
- * subsequent block.
- *
- * For the following blocks, the function marks them with the
- * HEAP_BLOCK_TABLE_ENTRY_TAKEN flag. If a block isn't the last in the
- * sequence, it also receives the HEAP_BLOCK_HAS_NEXT flag.
- *
+ * Starts by calculating end block index and preparing a valid first entry
+ * value in a sequence or standalone block.
  * @param heap Pointer to the heap object. This heap contains the block table
  * to be updated.
  * @param start_block The index of the first block to be marked as taken.
  * @param total_blocks The total number of contiguous blocks to be marked as
  * taken.
+ * @see heap_malloc_blocks()
+ * @note possible values for HEAP_BLOCK_TABLE_ENTRY:
+ *       -> 0x00 = free block.
+ *       -> 0x81 = taken, has next.
+ *       -> 0x41 = taken, first in series, could be a standalone block.
+ *       -> 0x01 = taken, implicitly last in series.
  */
 void
 heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
@@ -382,18 +284,23 @@ heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
   // Because we start counting arrays from 0, subtract 1 from total...
   int end_block = (start_block + total_blocks) - 1;
 
+  // The first entry is both block-taken and block-first.
   HEAP_BLOCK_TABLE_ENTRY entry
       = HEAP_BLOCK_TABLE_ENTRY_TAKEN | HEAP_BLOCK_IS_FIRST;
+
+  // If >1 blocks, set has-next flag as well...
   if (total_blocks > 1)
     {
       entry |= HEAP_BLOCK_HAS_NEXT;
     }
 
+  // A standalone block is marked first, taken. If >1 blocks, first block is
+  // marked first, taken, and has-next.
   for (int i = start_block; i <= end_block; i++)
     {
       heap->table->entries[i] = entry;
       entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
-      if (i != end_block)
+      if (i != end_block - 1)
         {
           entry |= HEAP_BLOCK_HAS_NEXT;
         }
@@ -409,22 +316,15 @@ heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
  *
  * 1. Locate the start of a sufficient sequence of free blocks: It does so by
  * calling the helper function heap_get_start_block(). This function returns
- * the index of the first block in a sufficient sequence of free blocks. If no
- * such sequence exists, the function returns an error code, and
- * heap_malloc_blocks() immediately returns, indicating a failed allocation.
+ * the index of the first block in a sufficient sequence of free blocks.
  *
  * 2. Compute the memory address corresponding to the first block: This step
  * involves calling the helper function heap_block_to_address() with the heap
- * object and the first block index obtained in the previous step. This
- * function calculates the memory address corresponding to a given block index
- * by offsetting the heap's start address with the product of the block index
- * and the block size.
+ * object and the first block index obtained in the previous step.
  *
  * 3. Mark the found blocks as taken: In the final step, the function calls
  * heap_mark_blocks_taken() to mark the blocks as taken in the heap's block
- * table. This function updates the entries in the block table corresponding to
- * the allocated blocks, setting their status as taken and updating the linking
- * flags accordingly.
+ * table.
  *
  * The function then returns the memory address computed in step 2. This
  * address points to the start of the allocated memory block in the heap.
@@ -460,19 +360,29 @@ out:
 }
 
 /**
- * @brief
- *
+ * @brief Marks a block or sequence of blocks in the heap table as free.
+ * Starts by naming a struct pointer to the global heap table. Then
+ * loops over the heap table entries from `start_block` to a maximum of
+ * `table->total` entries. For each entry, it stores 0x00 (free). If the block
+ * in question is marked as has-next, it continues looping. If not, it breaks.
  * @param heap
  * @param start_block
  */
 void
 heap_mark_blocks_free (struct heap *heap, int start_block)
 {
+  // Name a struct pointer to the global heap table.
   struct heap_table *table = heap->table;
+
   for (int i = start_block; i < (int)table->total; i++)
     {
+      // store table value at index i into 'entry'.
       HEAP_BLOCK_TABLE_ENTRY entry = table->entries[i];
+
+      // assign heap table entry at index i to 0x00 (free).
       table->entries[i] = HEAP_BLOCK_TABLE_ENTRY_FREE;
+
+      // if block is marked as has-next, loop over.
       if (!(entry & HEAP_BLOCK_HAS_NEXT))
         {
           break;
@@ -481,46 +391,27 @@ heap_mark_blocks_free (struct heap *heap, int start_block)
 }
 
 /**
- * @brief Marks a sequence of blocks in the heap as free.
- *
- * This function is responsible for marking a sequence of blocks in the heap as
- * free. It works with a start block index and continues marking subsequent
- * blocks as free until it hits a block that does not have the
- * 'HEAP_BLOCK_HAS_NEXT' flag set. This indicates the end of a previously
- * allocated sequence of blocks.
- *
- * The function iterates over the heap block table entries starting from the
- * given 'start_block' index. For each block, it retrieves the corresponding
- * table entry and sets it to 'HEAP_BLOCK_TABLE_ENTRY_FREE' indicating that the
- * block is now free. It also checks if the current block was part of a
- * multi-block allocation by examining the 'HEAP_BLOCK_HAS_NEXT' flag. If this
- * flag is not set, it means the end of the sequence has been reached, and the
- * function stops marking blocks as free.
- *
- * @param heap Pointer to the heap object in which the blocks are to be freed.
- * @param start_block The index of the first block in the sequence to be freed.
+ * @brief Converts a memory address into its corresponding heap block index.
+ * @param heap Pointer to the heap object, used for the base address of the
+ * heap "heap->saddr".
+ * @param address The memory address to be converted into a block index.
  */
 int
 heap_address_to_block (struct heap *heap, void *address)
 {
+  // Quotient of the range and 0x1000 (4096) is the block index...
   return ((int)(address - heap->saddr)) / LAMEOS_HEAP_BLOCK_SIZE;
 }
 
 /**
  * @brief Allocates a block of memory from the heap.
  *
- * The function begins by aligning the requested size to the heap block size.
- * This is done using the helper function 'heap_align_value_to_upper()'. The
- * alignment ensures that the allocated block of memory will start at an
- * address that is a multiple of 'LAMEOS_HEAP_BLOCK_SIZE', thereby respecting
- * the architecture's memory alignment restrictions. This aligned size is then
- * divided by the block size to determine the total number of blocks needed to
- * satisfy the request.
- *
- * After the total number of blocks is calculated, 'heap_malloc_blocks()' is
- * called to allocate these blocks from the heap. If successful,
- * 'heap_malloc_blocks()' returns a pointer to the start of the allocated
- * memory.
+ * Begins by aligning the requested size to the valid heap block size with the
+ * helper function 'heap_align_value_to_upper()'. This aligned size is then
+ * divided by the block size to calculate the total number of blocks needed and
+ * stored in 'total_blocks'. 'heap_malloc_blocks()' is then called to allocate
+ * these blocks from the heap. If successful, 'heap_malloc_blocks()' returns a
+ * pointer to the start of the allocated memory. Otherwise, it returns NULL.
  *
  * @param heap Pointer to the heap object from which the memory is to be
  * allocated.
@@ -544,26 +435,11 @@ heap_malloc (struct heap *heap, size_t size)
 }
 
 /**
- * @brief Deallocates a block of memory from the heap.
+ * @brief Frees a block of memory on the heap.
+ * Wrapper function for heap_mark_blocks_free().
  *
- * The function frees up the previously allocated block of memory by marking it
- * as free in the heap's block table. The address of the block to be freed is
- * passed to the function as 'ptr'.
- *
- * The process begins by converting the memory address 'ptr' to a block index
- * within the heap using the helper function 'heap_address_to_block()'. The
- * resulting block index represents the start of the block(s) that were
- * previously allocated.
- *
- * After obtaining the start block index, 'heap_mark_blocks_free()' is called
- * to mark the associated block(s) in the heap's block table as free. This
- * effectively deallocates the block of memory and makes it available for
- * future allocation requests.
- *
- * @param heap Pointer to the heap object from which the memory is to be
- * deallocated.
- * @param ptr Pointer to the start of the block of memory to be deallocated.
- * @see heap_mark_blocks_free().
+ * @param heap Pointer to the heap object from which the memory is to be freed.
+ * @param ptr The pointer to the memory block(s) to be freed.
  */
 void
 heap_free (struct heap *heap, void *ptr)

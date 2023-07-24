@@ -169,22 +169,13 @@ kernel_main ()
 {
   term_initialize ();
   print ("Welcome to LameOS!\n\nTesting...");
-
   kheap_init();
-
   idt_init ();
-
-  void *ptr = kmalloc(50);
-  void *ptr2 = kmalloc(5000);
-  void *ptr3 = kmalloc(5600);
-  kfree(ptr);
-  void *ptr4 = kmalloc(50);
-
-  if(ptr || ptr2 || ptr3 || ptr4)
-  {
-    ;
-  }
+  enable_interrupts ();
 }
+
+
+
 
 #if 0
   // The OFFICIAL Color Show Comment :) 

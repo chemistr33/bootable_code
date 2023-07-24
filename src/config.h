@@ -3,7 +3,7 @@
 
 /**
  * @brief Code Segment Selector
- * 
+ *  
  * The offset of the code_seg entry in the GDT is 0x08.
  */
 #define KERNEL_CODE_SELECTOR 0X08
@@ -22,7 +22,7 @@
  * reality only 256 are actually available for use by programmers. The rest
  * are reserved by the CPU for one reason or another.
  */
-#define LAMEOS_TOTAL_INTERRUPTS 512
+#define LAMEOS_TOTAL_INTERRUPTS 256
 
 /**
  * @brief Size of the kernel heap in bytes. (100 MB)
@@ -38,9 +38,10 @@
 /**
  * @brief The starting address of the kernel heap, (16 MB).
  * The kernel heap begins here and ends at 16 MB + 100 MB = 116 MB, Which is
- * 0x01000000 + 0x6400000 = 0x6F00000. 
+ * 0x01000000 + 0x6400000 = 0x7400000. 
  */
 #define LAMEOS_HEAP_ADDRESS       0x01000000
+
 
 /**
  * @brief The address of the kernel heap table (32 KB). The size of the

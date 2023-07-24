@@ -1,0 +1,154 @@
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Warning: 'set logging off', an alias for the command 'set logging enabled', is deprecated.
+Use 'set logging enabled off'.
+
+logging debugredirect:  off: Debug output will go to both the screen and the log file.
+logging enabled:  on: Logging is enabled.
+logging file:  The current logfile is "gdb.txt".
+logging overwrite:  off: Logging appends to the log file.
+logging redirect:  off: Output will go to both the screen and the log file.
+add symbol table from file "../build/kernelfull-elf.o" at
+	.text_addr = 0x100000
+Reading symbols from ../build/kernelfull-elf.o...
+Remote debugging using | qemu-system-i386 -hda ./os.bin -gdb stdio -S
+WARNING: Image format was not specified for './os.bin' and probing guessed raw.
+         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.
+         Specify the 'raw' format explicitly to remove the restrictions.
+warning: No executable has been specified and target does not support
+determining executable automatically.  Try using the "file" command.
+0x0000fff0 in ?? ()
+Note: breakpoint 1 also set at pc 0x1008e0.
+Breakpoint 2 at 0x1008e0: file ./src/memory/heap/heap.c, line 387.
+Continuing.
+
+Breakpoint 1, heap_mark_blocks_taken (heap=0x103028 <kernel_heap>, start_block=0, total_blocks=5) at ./src/memory/heap/heap.c:387
+387	{
+382	 *       -> 0x41 = taken, first in series, could be a standalone block.
+383	 *       -> 0x01 = taken, implicitly last in series.
+384	 */
+385	void
+386	heap_mark_blocks_taken (struct heap *heap, int start_block, int total_blocks)
+387	{
+388	  // Because we start counting arrays from 0, subtract 1 from total...
+389	  int end_block = (start_block + total_blocks) - 1;
+390	
+391	  // The first entry is both block-taken and block-first.
+389	  int end_block = (start_block + total_blocks) - 1;
+$13 = 1060912
+392	  HEAP_BLOCK_TABLE_ENTRY entry
+$14 = 4
+396	  if (total_blocks > 1)
+398	      entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$15 = 193 '\301'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$16 = 129 '\201'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$17 = 129 '\201'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$18 = 129 '\201'
+407	      if (i != end_block - 1)
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+412	}
+No symbol "i" in current context.
+Continuing.
+
+Breakpoint 1, heap_mark_blocks_taken (heap=0x103028 <kernel_heap>, start_block=5, total_blocks=3) at ./src/memory/heap/heap.c:387
+387	{
+389	  int end_block = (start_block + total_blocks) - 1;
+392	  HEAP_BLOCK_TABLE_ENTRY entry
+396	  if (total_blocks > 1)
+398	      entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$19 = 193 '\301'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$20 = 129 '\201'
+407	      if (i != end_block - 1)
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$21 = 1 '\001'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+qemu-system-i386: QEMU: Terminated via GDBstub
+[Inferior 1 (process 1) killed]
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x001008e0 in heap_mark_blocks_taken 
+                                           at ./src/memory/heap/heap.c:387
+	breakpoint already hit 3 times
+2       breakpoint     keep y   0x001008e0 in heap_mark_blocks_taken 
+                                           at ./src/memory/heap/heap.c:387
+	breakpoint already hit 2 times
+Remote debugging using | qemu-system-i386 -hda ./os.bin -gdb stdio -S
+WARNING: Image format was not specified for './os.bin' and probing guessed raw.
+         Automatically detecting the format is dangerous for raw images, write operations on block 0 will be restricted.
+         Specify the 'raw' format explicitly to remove the restrictions.
+warning: No executable has been specified and target does not support
+determining executable automatically.  Try using the "file" command.
+0x0000fff0 in ?? ()
+Breakpoint 3 at 0x1008e0: file ./src/memory/heap/heap.c, line 387.
+Continuing.
+
+Breakpoint 3, heap_mark_blocks_taken (heap=0x103028 <kernel_heap>, start_block=0, total_blocks=5) at ./src/memory/heap/heap.c:387
+387	{
+389	  int end_block = (start_block + total_blocks) - 1;
+392	  HEAP_BLOCK_TABLE_ENTRY entry
+396	  if (total_blocks > 1)
+$22 = 4
+$23 = 0
+$24 = 5
+398	      entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$25 = 193 '\301'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$26 = 129 '\201'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$27 = 129 '\201'
+407	      if (i != end_block - 1)
+409	          entry |= HEAP_BLOCK_HAS_NEXT;
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$28 = 129 '\201'
+407	      if (i != end_block - 1)
+403	  for (int i = start_block; i <= end_block; i++)
+405	      heap->table->entries[i] = entry;
+406	      entry = HEAP_BLOCK_TABLE_ENTRY_TAKEN;
+$29 = 1 '\001'
+qemu-system-i386: QEMU: Terminated via GDBstub
+[Inferior 1 (process 1) killed]
