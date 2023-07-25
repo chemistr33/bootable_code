@@ -15,9 +15,10 @@
  */
 #define VGA_HEIGHT 25
 
+#define LAMEOS_MAX_PATH 108
+
 void kernel_main ();
 void term_initialize ();
-size_t strlen (const char *str);
 uint16_t term_make_char (char c, char color);
 void term_putchar (int x, int y, char c, char color);
 void term_writechar (char c, char color);

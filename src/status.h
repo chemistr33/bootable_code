@@ -34,4 +34,6 @@
  */
 #define ENOMEM 3
 
+#define EBADPATH 4
+
 #endif

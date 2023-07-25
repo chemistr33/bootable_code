@@ -49,4 +49,7 @@
  */
 #define LAMEOS_HEAP_TABLE_ADDRESS 0x00007E00
 
+
+#define LAMEOS_SECTOR_SIZE 512
+
 #endif

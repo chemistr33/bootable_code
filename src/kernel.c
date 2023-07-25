@@ -4,6 +4,9 @@
 #include "memory/paging/paging.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "string/string.h"
+#include "disk/disk.h"
+#include "fs/pparser.h"
 
 /**
  * @brief Pointer to VGA Framebuffer.
@@ -80,23 +83,6 @@ term_initialize ()
     }
 }
 
-/**
- * @brief Returns the length of a string.
- * This function returns the length of a string by iterating through the string
- * until it reaches a null terminator, maintaining a count as it goes.
- * @param str The string to get the length of.
- * @return size_t The length of the string.
- */
-size_t
-strlen (const char *str)
-{
-  size_t len = 0;
-  while (str[len])
-    {
-      len++;
-    }
-  return len;
-}
 
 /**
  * @brief Writes a character, advancing cursor, newline if necessary.
@@ -171,25 +157,35 @@ kernel_main ()
   // Clear BIOS text and print welcome message
   term_initialize ();
   print ("Welcome to LameOS!\nWork in progress...\n\n--> ");
-  
+
   // Initialize the heap
   kheap_init ();
-  
+
+  // Search and initialize the disk
+  disk_search_and_init();
+
   // Initialize the interrupt descriptor table
   idt_init ();
-  
+
   // Setup paging
   kernel_chunk = paging_new_4gb (PAGING_IS_WRITEABLE | PAGING_IS_PRESENT
                                  | PAGING_ACCESS_FROM_ALL);
-  
+
   // Switch to kernel paging chunk
-  paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+  paging_switch (paging_4gb_chunk_get_directory (kernel_chunk));
 
   // Enable paging
-  enable_paging();
+  enable_paging ();
   
   // Enable the system interrupts
   enable_interrupts ();
+
+  struct path_root *root_path = pathparser_parse("0:/bin/shell.exe", NULL);
+  if(root_path)
+  {
+
+  }
+
 }
 
 #if 0
