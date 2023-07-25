@@ -1,9 +1,9 @@
 #include "kernel.h"
-#include <stddef.h>
-#include <stdint.h>
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
-
+#include "memory/paging/paging.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /**
  * @brief Pointer to VGA Framebuffer.
@@ -164,18 +164,33 @@ forever:
   goto forever;
 }
 
+static struct paging_4gb_chunk *kernel_chunk = 0;
 void
 kernel_main ()
 {
+  // Clear BIOS text and print welcome message
   term_initialize ();
-  print ("Welcome to LameOS!\n\nTesting...");
-  kheap_init();
+  print ("Welcome to LameOS!\nWork in progress...\n\n--> ");
+  
+  // Initialize the heap
+  kheap_init ();
+  
+  // Initialize the interrupt descriptor table
   idt_init ();
+  
+  // Setup paging
+  kernel_chunk = paging_new_4gb (PAGING_IS_WRITEABLE | PAGING_IS_PRESENT
+                                 | PAGING_ACCESS_FROM_ALL);
+  
+  // Switch to kernel paging chunk
+  paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+
+  // Enable paging
+  enable_paging();
+  
+  // Enable the system interrupts
   enable_interrupts ();
 }
-
-
-
 
 #if 0
   // The OFFICIAL Color Show Comment :) 
