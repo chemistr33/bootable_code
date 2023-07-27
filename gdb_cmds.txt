@@ -14,3 +14,11 @@ target remote | qemu-system-i386 -hda ./os.bin -gdb stdio -S
 
 Also, set the breakpoint correctly before continuing for the
 first time when running a debug session.
+
+
+
+Command to mount LAMEOS filesystem  
+**************************************
+
+sudo mkdir /mnt/d
+sudo mount -t vfat ./os.bin /mnt/d

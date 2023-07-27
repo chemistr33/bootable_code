@@ -1,13 +1,13 @@
 #include "kernel.h"
+#include "disk/disk.h"
+#include "disk/streamer.h"
+#include "fs/pparser.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "string/string.h"
 #include <stddef.h>
 #include <stdint.h>
-#include "string/string.h"
-#include "disk/disk.h"
-#include "fs/pparser.h"
-#include "disk/streamer.h"
 
 /**
  * @brief Pointer to VGA Framebuffer.
@@ -83,7 +83,6 @@ term_initialize ()
         }
     }
 }
-
 
 /**
  * @brief Writes a character, advancing cursor, newline if necessary.
@@ -163,7 +162,7 @@ kernel_main ()
   kheap_init ();
 
   // Search and initialize the disk
-  disk_search_and_init();
+  disk_search_and_init ();
 
   // Initialize the interrupt descriptor table
   idt_init ();
@@ -177,20 +176,9 @@ kernel_main ()
 
   // Enable paging
   enable_paging ();
-  
+
   // Enable the system interrupts
   enable_interrupts ();
-
-  struct disk_stream *stream = diskstreamer_new(0);
-  diskstreamer_seek(stream, 0x201);
-  unsigned char c=0;
-  diskstreamer_read(stream, &c, 1);
-  // in GDB, read block 201
-  while(1)
-  {
-
-  }
-
 }
 
 #if 0
