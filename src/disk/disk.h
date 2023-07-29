@@ -11,9 +11,13 @@ struct disk
 {
   LAMEOS_DISK_TYPE type;
   int sector_size;
+  int id;
 
   // filesystem bound to the disk.
   struct filesystem *filesystem;
+
+  // Private data of the filesystem
+  void *fs_private;
 };
 
 void disk_search_and_init ();

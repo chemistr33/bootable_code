@@ -56,4 +56,6 @@
 
 #define LAMEOS_MAX_FILE_DESCRIPTORS 512
 
+#define LAMEOS_MAX_PATH 108
+
 #endif

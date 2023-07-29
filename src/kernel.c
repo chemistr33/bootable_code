@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "disk/disk.h"
 #include "disk/streamer.h"
+#include "fs/file.h"
 #include "fs/pparser.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
@@ -161,6 +162,9 @@ kernel_main ()
   // Initialize the heap
   kheap_init ();
 
+  // Initialize filesystems
+  fs_init ();
+
   // Search and initialize the disk
   disk_search_and_init ();
 
@@ -179,6 +183,16 @@ kernel_main ()
 
   // Enable the system interrupts
   enable_interrupts ();
+
+  int fd = fopen("0:/no1.txt", "r");
+  if(fd)
+  {
+    print("We opened no1.txt\n");
+  }
+
+  while (1)
+    {
+    }
 }
 
 #if 0

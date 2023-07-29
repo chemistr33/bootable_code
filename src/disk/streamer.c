@@ -55,7 +55,7 @@ out:
   return res;
 }
 
-void diskstreamer_close(struct disk *stream)
+void diskstreamer_close(struct disk_stream *stream)
 {
   kfree(stream);
 }

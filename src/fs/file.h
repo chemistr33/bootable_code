@@ -27,7 +27,7 @@ typedef int (*FS_RESOLVE_FUNCTION) (struct disk *disk);
 
 struct filesystem
 {
-  // filesystem should return zero from resolve if the provided disk is using 
+  // filesystem should return zero from resolve if the provided disk is using
   // its filesystem.
   FS_RESOLVE_FUNCTION resolve;
   FS_OPEN_FUNCTION open;
@@ -39,17 +39,17 @@ struct file_descriptor
   // The descriptor index.
   int index;
   struct filesystem *filesystem;
-  
+
   // Private data for internal file descriptor.
-  void *_private;
+  void *private;
 
   // The disk the file descriptor should be used on.
   struct disk *disk;
 };
 
-void fs_init();
-int fopen(const char *filename, const char *mode);
-void fs_insert_filesystem(struct filesystem *filesystem);
-struct filesystem *fs_resolve(struct disk *disk);
+void fs_init ();
+int fopen (const char *filename, const char *mode_str);
+void fs_insert_filesystem (struct filesystem *filesystem);
+struct filesystem *fs_resolve (struct disk *disk);
 
 #endif

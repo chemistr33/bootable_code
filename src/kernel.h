@@ -25,4 +25,8 @@ void term_writechar (char c, char color);
 void print (const char *str);
 void lame_color_show ();
 
+#define ERROR(value) (void*)(value)
+#define ERROR_I(value) (int)(value)
+#define ISERR(value) ((int)value) < 0
+
 #endif
