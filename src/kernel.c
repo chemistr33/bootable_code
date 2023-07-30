@@ -187,7 +187,10 @@ kernel_main ()
   int fd = fopen("0:/no1.txt", "r");
   if(fd)
   {
-    print("We opened no1.txt\n");
+    print("\nLameOS opened 'no1.txt'\n\n");
+    char buf[61];
+    fread(buf, 60, 1, fd);
+    print(buf);
   }
 
   while (1)

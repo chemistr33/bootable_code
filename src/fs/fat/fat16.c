@@ -124,8 +124,11 @@ struct fat_private
 
 int fat16_resolve (struct disk *disk);
 void *fat16_open (struct disk *disk, struct path_part *path, FILE_MODE mode);
+int fat16_read (struct disk *disk, void *descriptor, uint32_t size,
+                uint32_t nmemb, char *out_ptr);
 
-struct filesystem fat16_fs = { .resolve = fat16_resolve, .open = fat16_open };
+struct filesystem fat16_fs
+    = { .resolve = fat16_resolve, .open = fat16_open, .read = fat16_read };
 
 struct filesystem *
 fat16_init ()
@@ -477,7 +480,7 @@ fat16_read_internal_from_stream (struct disk *disk, struct disk_stream *stream,
   int starting_sector = fat16_cluster_to_sector (private, cluster_to_use);
 
   int starting_pos
-      = (starting_sector * disk->sector_size) * offset_from_cluster;
+      = (starting_sector * disk->sector_size) + offset_from_cluster;
 
   int total_to_read
       = total > size_of_cluster_bytes ? size_of_cluster_bytes : total;
@@ -695,4 +698,32 @@ fat16_open (struct disk *disk, struct path_part *path, FILE_MODE mode)
 
   descriptor->pos = 0;
   return descriptor;
+}
+
+int
+fat16_read (struct disk *disk, void *descriptor, uint32_t size, uint32_t nmemb,
+            char *out_ptr)
+{
+  int res = 0;
+
+  struct fat_file_descriptor *fat_desc = descriptor;
+  struct fat_directory_item *item = fat_desc->item->item;
+  int offset = fat_desc->pos;
+  for (uint32_t i = 0; i < nmemb; i++)
+    {
+      res = fat16_read_internal (disk, fat16_get_first_cluster (item), offset,
+                                 size, out_ptr);
+
+      if (ISERR (res))
+        {
+          goto out;
+        }
+
+      out_ptr += size;
+      offset += size;
+    }
+
+  res = nmemb;
+out:
+  return res;
 }
