@@ -62,6 +62,13 @@ fs_init ()
   fs_load ();
 }
 
+static void
+file_free_descriptor (struct file_descriptor *desc)
+{
+  file_descriptors[desc->index - 1] = 0x00;
+  kfree (desc);
+}
+
 static int
 file_new_descriptor (struct file_descriptor **desc_out)
 {
@@ -198,25 +205,58 @@ out:
   return res;
 }
 
-int fseek(int fd, int offset, FILE_SEEK_MODE whence)
+int
+fstat (int fd, struct file_stat *stat)
 {
   int res = 0;
-  struct file_descriptor *desc = file_get_descriptor(fd);
-  if(!desc)
-  {
-    res = -EIO;
-    goto out;
-  }
+  struct file_descriptor *desc = file_get_descriptor (fd);
+  if (!desc)
+    {
+      res = -EIO;
+      goto out;
+    }
 
-  res = desc->filesystem->seek(desc->private, offset, whence);
-  
-
+  res = desc->filesystem->stat (desc->disk, desc->private, stat);
 out:
   return res;
 }
 
+int
+fclose (int fd)
+{
+  int res = 0;
+  struct file_descriptor *desc = file_get_descriptor (fd);
+  if (!fd)
+    {
+      res = -EIO;
+      goto out;
+    }
 
+  res = desc->filesystem->close (desc->private);
+  if (res == LAMEOS_OK)
+    {
+      file_free_descriptor (desc);
+    }
+out:
+  return res;
+}
 
+int
+fseek (int fd, int offset, FILE_SEEK_MODE whence)
+{
+  int res = 0;
+  struct file_descriptor *desc = file_get_descriptor (fd);
+  if (!desc)
+    {
+      res = -EIO;
+      goto out;
+    }
+
+  res = desc->filesystem->seek (desc->private, offset, whence);
+
+out:
+  return res;
+}
 
 int
 fread (void *ptr, uint32_t size, uint32_t nmemb, int fd)

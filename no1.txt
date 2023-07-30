@@ -1,1 +1,1 @@
-!!! LameOS virtual filesystem test !!!
+LameOS_VirtualFilesystemTest

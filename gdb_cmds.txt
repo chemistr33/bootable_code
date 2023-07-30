@@ -22,3 +22,36 @@ Command to mount LAMEOS filesystem
 
 sudo mkdir /mnt/d
 sudo mount -t vfat ./os.bin /mnt/d
+
+
+Neat way to print the struct of a stat output
+*********************************************
+0x0000fff0 in ?? ()
+(gdb) break kernel.c:191
+Breakpoint 1 at 0x100505: file ./src/kernel.c, line 191.
+(gdb) c
+Continuing.
+
+Breakpoint 1, kernel_main () at ./src/kernel.c:191
+191	    fstat(fd, &s);
+(gdb) s
+fstat (fd=1, stat=0x1fffe4) at ./src/fs/file.c:202
+202	{
+(gdb) n
+203	  int res = 0;
+(gdb) c
+Continuing.
+^C
+Program received signal SIGINT, Interrupt.
+kernel_main () at ./src/kernel.c:194
+194	  while (1)
+(gdb) print s
+No symbol "s" in current context.
+(gdb) print fstat(fd, (struct file_stat*)(0x00))
+$1 = 0
+(gdb) print *(struct file_stat*)0x0
+$2 = {
+  flags = 0,
+  filesize = 28
+}
+

@@ -41,5 +41,7 @@
 
 #define ERDONLY 6
 
+#define EUNIMP 7
+
 
 #endif
