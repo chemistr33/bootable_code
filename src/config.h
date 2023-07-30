@@ -58,4 +58,8 @@
 
 #define LAMEOS_MAX_PATH 108
 
+#define LAMEOS_TOTAL_GDT_SEGMENTS 3
+
+
+
 #endif

@@ -1,10 +1,13 @@
 #include "kernel.h"
+#include "config.h"
 #include "disk/disk.h"
 #include "disk/streamer.h"
 #include "fs/file.h"
 #include "fs/pparser.h"
+#include "gdt/gdt.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
 #include <stddef.h>
@@ -151,19 +154,36 @@ forever:
   goto forever;
 }
 
-void panic(const char *msg)
+void
+panic (const char *msg)
 {
-  print(msg);
-  while(1){}
+  print (msg);
+  while (1)
+    {
+    }
 }
 
+struct gdt gdt_real[LAMEOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[LAMEOS_TOTAL_GDT_SEGMENTS] = {
+  { .base = 0x00, .limit = 0x00, .type = 0x00 },       // Null segment
+  { .base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A }, // Kernel code segment
+  { .base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92 }  // Kernel data segment
+};
+
 static struct paging_4gb_chunk *kernel_chunk = 0;
+
 void
 kernel_main ()
 {
   // Clear BIOS text and print welcome message
   term_initialize ();
   print ("Welcome to LameOS!\nWork in progress...\n\n--> ");
+
+  memset (gdt_real, 0x00, sizeof (gdt_real));
+  gdt_structured_to_gdt (gdt_real, gdt_structured, LAMEOS_TOTAL_GDT_SEGMENTS);
+
+  // Load the GDT
+  gdt_load(gdt_real, sizeof(gdt_real));
 
   // Initialize the heap
   kheap_init ();
@@ -190,14 +210,14 @@ kernel_main ()
   // Enable the system interrupts
   enable_interrupts ();
 
-  int fd = fopen("0:/no1.txt", "r");
-  if(fd)
-  {
-    struct file_stat s;
-    fstat(fd, &s);
-    fclose(fd);
-    print("successful close!!!\n");
-  }
+  int fd = fopen ("0:/no1.txt", "r");
+  if (fd)
+    {
+      struct file_stat s;
+      fstat (fd, &s);
+      fclose (fd);
+      print ("successful close!!!\n");
+    }
 
   while (1)
     {
