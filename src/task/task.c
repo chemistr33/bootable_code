@@ -2,8 +2,8 @@
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
-#include "status.h"
 #include "process.h"
+#include "status.h"
 
 // Currently running task
 struct task *current_task = 0;
@@ -105,6 +105,34 @@ task_free (struct task *task)
 }
 
 int
+task_switch (struct task *task)
+{
+  current_task = task;
+  paging_switch (task->page_directory->directory_entry);
+  return 0;
+}
+
+int
+task_page ()
+{
+  user_registers ();
+  task_switch (current_task);
+  return 0;
+}
+
+void
+task_run_first_ever_task ()
+{
+  if (!current_task)
+    {
+      panic ("task_run_first_ever_task(): No current task exists!");
+    }
+
+  task_switch (task_head);
+  task_return (&task_head->registers);
+}
+
+int
 task_init (struct task *task, struct process *process)
 {
   memset (task, 0, sizeof (struct task));
@@ -121,7 +149,7 @@ task_init (struct task *task, struct process *process)
   task->registers.ip = LAMEOS_PROGRAM_VIRTUAL_ADDRESS;
   task->registers.ss = USER_DATA_SEGMENT;
   task->registers.esp = LAMEOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
-  
+
   task->process = process;
   return 0;
 }
