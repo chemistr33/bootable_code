@@ -43,5 +43,6 @@
 
 #define EUNIMP 7
 
+#define EISTKN 8
 
 #endif

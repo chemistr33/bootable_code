@@ -1,15 +1,15 @@
 #include "string.h"
 
-char tolower(char s1)
+char
+tolower (char s1)
 {
-  if(s1 >= 65 && s1<=90)
-  {
-    s1 += 32;
-  }
+  if (s1 >= 65 && s1 <= 90)
+    {
+      s1 += 32;
+    }
 
   return s1;
 }
-
 
 int
 strlen (const char *ptr)
@@ -34,6 +34,22 @@ strnlen (const char *ptr, int max)
         break;
     }
   return i;
+}
+
+char *
+strncpy (char *dest, const char *src, int count)
+{
+  int i = 0;
+  for (i = 0; i < (count - 1); i++)
+    {
+      if (src[i] == 0x00)
+        break;
+
+      dest[i] = src[i];
+    }
+  dest[i] = 0x00;
+
+  return dest;
 }
 
 bool
