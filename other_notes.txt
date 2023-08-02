@@ -1,0 +1,5 @@
+0 fran.sys ~/oslink/programs/blank > ndisasm -b32 ./blank.bin
+00000000  EBFE              jmp short 0x0
+
+
+
