@@ -2,6 +2,11 @@
 #define IDT_H
 #include <stdint.h>
 
+struct interrupt_frame;
+typedef void*(*ISR80H_COMMAND)(struct interrupt_frame *frame);
+
+
+
 /**
  * @brief Interrupt Descriptor Table (IDT) Descriptor.
  *
@@ -34,6 +39,23 @@ struct idtr_desc
   uint32_t base;  // base address of the table start point in memory
 } __attribute__ ((packed));
 
+struct interrupt_frame
+{
+  uint32_t edi;
+  uint32_t esi;
+  uint32_t ebp;
+  uint32_t reserved;
+  uint32_t ebx;
+  uint32_t edx;
+  uint32_t ecx;
+  uint32_t eax;
+  uint32_t ip;
+  uint32_t cs;
+  uint32_t flags;
+  uint32_t esp;
+  uint32_t ss;
+}__attribute__((packed));
+
 /**
  * @brief Initialize Kernel Interrupt Descriptor Table (IDT).
  * Initializes the Interrupt Descriptor Table (IDT) by: Zeroing out the user-IDT
@@ -45,5 +67,9 @@ struct idtr_desc
 void idt_init ();
 void enable_interrupts ();
 void disable_interrupts ();
+void isr80h_register_command(int command_id, ISR80H_COMMAND command);
+
+
+
 
 #endif

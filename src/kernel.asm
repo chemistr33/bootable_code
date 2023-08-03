@@ -3,6 +3,7 @@
 
 [BITS 32]
 global _start           ; Tell linker entry point of kernel binary is here
+global kernel_registers
 extern kernel_main      ; Tell linker kernel_main is defined elsewhere
 
 CODE_SEG equ 0x08       ; 0x08 is the code segment offset in the GDT
@@ -33,6 +34,14 @@ _start:
     call kernel_main    ; Call the kernel's main function
 
     jmp $               ; After kernel_main returns, hang
+
+kernel_registers:
+    mov ax, 10
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
+    ret
 
 times 512-($ - $$) db 0 ; Pad remainder of sector with 0s
                         ; for a total size of 512B to keep disk driver happy

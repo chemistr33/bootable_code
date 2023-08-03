@@ -1,4 +1,5 @@
 #include "task.h"
+#include "idt/idt.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
@@ -41,6 +42,7 @@ task_new (struct process *process)
     {
       task_head = task;
       task_tail = task;
+      current_task = task;
       goto out;
     }
 
@@ -108,8 +110,39 @@ int
 task_switch (struct task *task)
 {
   current_task = task;
-  paging_switch (task->page_directory->directory_entry);
+  paging_switch (task->page_directory);
   return 0;
+}
+
+void
+task_save_state (struct task *task, struct interrupt_frame *frame)
+{
+  task->registers.ip = frame->ip;
+  task->registers.cs = frame->cs;
+  task->registers.flags = frame->flags;
+  task->registers.esp = frame->esp;
+  task->registers.ss = frame->ss;
+  task->registers.eax = frame->eax;
+  task->registers.ebp = frame->ebp;
+  task->registers.ebx = frame->ebx;
+  task->registers.ecx = frame->ecx;
+  task->registers.edi = frame->edi;
+  task->registers.edx = frame->edx;
+  task->registers.esi = frame->esi;
+
+  
+}
+
+void
+task_current_save_state (struct interrupt_frame *frame)
+{
+  if (!task_current ())
+    {
+      panic ("No current task to save.\n");
+    }
+
+  struct task *task = task_current ();
+  task_save_state (task, frame);
 }
 
 int
@@ -148,6 +181,7 @@ task_init (struct task *task, struct process *process)
 
   task->registers.ip = LAMEOS_PROGRAM_VIRTUAL_ADDRESS;
   task->registers.ss = USER_DATA_SEGMENT;
+  task->registers.cs = USER_CODE_SEGMENT;
   task->registers.esp = LAMEOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
 
   task->process = process;

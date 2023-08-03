@@ -11,6 +11,7 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	sudo mount -t vfat ./bin/os.bin /mnt/d
 # copy a file over
 	sudo cp ./no1.txt /mnt/d
+	sudo cp	./programs/blank/blank.bin /mnt/d
 	sudo umount /mnt/d
 
 ./bin/kernel.bin: $(FILES)

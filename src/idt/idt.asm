@@ -8,6 +8,8 @@ global idt_load
 global no_interrupt
 global enable_interrupts
 global disable_interrupts
+global isr80h_wrapper
+extern isr80h_handler
 
 enable_interrupts:
     sti
@@ -27,20 +29,52 @@ idt_load:
     ret              ; Return to caller (idt_init)
 
 int21h:
-    cli
     pushad
     call int21h_handler
     popad
-    sti
     iret
 
 no_interrupt:
-    cli
     pushad
     call no_interrupt_handler
     popad
-    sti
     iret
+
+isr80h_wrapper:
+    ; INTERRUPT FRAME START
+    ; ALREADY PUSHED TO US BY THE PROCESSOR UPON ENTRY TO THIS INTERRUPT
+    ; uint32_t ip
+    ; uint32_t cs
+    ; uint32_t flags
+    ; uint32_t sp
+    ; uint32_t ss
+    ; pushes the general purpose registers to the stack
+    pushad 
+
+    ; Interrupt frame ends...
+
+    ; Push stack pointer so we're pointing to the interrupt frame
+    ; we can cast it to a c struct later on to access it...
+    push esp
+
+    ; EAX holds the command, push to stack for isr80h_handler
+    push eax
+    call isr80h_handler
+    mov dword[tmp_res], eax
+    add esp, 8  ; adjust stack because we added two variables (2 * 4B)
+
+    ; Restore GPRs for userland
+    popad
+    mov eax, [tmp_res]
+    iretd
+
+
+section .data
+; Stores the return result from isr80h_handler
+tmp_res: dd 0
+
+    
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Stack Diagram ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                              ;

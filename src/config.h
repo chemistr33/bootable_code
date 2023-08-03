@@ -76,5 +76,6 @@
 
 #define LAMEOS_MAX_PROCESSES 12
 
+#define LAMEOS_MAX_ISR80H_COMMANDS 1024
 
 #endif
