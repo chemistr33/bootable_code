@@ -6,6 +6,7 @@
 #include "fs/pparser.h"
 #include "gdt/gdt.h"
 #include "idt/idt.h"
+#include "isr80h/isr80h.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
@@ -231,6 +232,9 @@ kernel_main ()
   // Enable paging
   enable_paging ();
 
+  // Register kernel commands
+  isr80h_register_commands();
+  
   struct process *process = 0;
   int res = process_load ("0:/blank.bin", &process);
   if (res != LAMEOS_OK)
