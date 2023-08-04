@@ -155,20 +155,20 @@ copy_string_from_task (struct task *task, void *virtual, void *phys, int max)
               PAGING_IS_WRITEABLE | PAGING_IS_PRESENT
                   | PAGING_ACCESS_FROM_ALL);
   paging_switch (task->page_directory);
-  strncpy(tmp, virtual, max);
-  kernel_page();
+  strncpy (tmp, virtual, max);
+  kernel_page ();
 
-  res = paging_set(task_directory, tmp, old_entry);
-  if(res < 0)
-  {
-    res = -EIO;
-    goto out_free;
-  }
+  res = paging_set (task_directory, tmp, old_entry);
+  if (res < 0)
+    {
+      res = -EIO;
+      goto out_free;
+    }
 
-  strncpy(phys, tmp, max);
+  strncpy (phys, tmp, max);
 
 out_free:
-  kfree(tmp);
+  kfree (tmp);
 
 out:
   return res;
@@ -191,6 +191,13 @@ task_page ()
 {
   user_registers ();
   task_switch (current_task);
+  return 0;
+}
+
+int task_page_task(struct task *task)
+{
+  user_registers();
+  paging_switch(task->page_directory);
   return 0;
 }
 
@@ -227,4 +234,22 @@ task_init (struct task *task, struct process *process)
 
   task->process = process;
   return 0;
+}
+
+void *
+task_get_stack_item (struct task *task, int index)
+{
+  void *result = 0;
+
+  uint32_t *sp_ptr = (uint32_t *) task->registers.esp;
+
+  // Switch to the given task's page
+  task_page_task(task);
+
+  result = (void *) sp_ptr[index];
+
+  // Switch back to the kernel page
+  kernel_page();
+
+  return result;
 }
