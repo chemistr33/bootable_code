@@ -3,9 +3,34 @@
 #include "../heap/kheap.h"
 
 void paging_load_directory (uint32_t *directory);
-
 static uint32_t *current_directory = 0;
 
+/**
+ * @brief Allocates and initializes a new 4GB paging chunk.
+ *
+ * This function creates a new 4GB paging chunk, populating the page
+ * directory and accompanying page tables. It accomplishes this in several
+ * steps:
+ *
+ * 1. It allocates memory for the page directory which has
+ * PAGING_TOTAL_ENTRIES_PER_TABLE number of entries.
+ *
+ * 2. It then iteratively constructs each entry in the directory. For each
+ * directory entry:
+ *    - It allocates memory for a page table, also having
+ * PAGING_TOTAL_ENTRIES_PER_TABLE number of entries.
+ *    - It populates each entry in the page table, assigning a corresponding
+ * offset address.
+ *    - It updates the offset for the next page table.
+ *    - It stores the address of the page table in the current directory entry,
+ * marking it as writeable.
+ *
+ * 3. Lastly, it allocates memory for the 4GB chunk structure, stores the
+ * address of the page directory in it, and returns this structure.
+ *
+ * @param flags Page flags that are applied to each page table entry.
+ * @return struct paging_4gb_chunk* Pointer to the allocated 4GB paging chunk.
+ */
 struct paging_4gb_chunk *
 paging_new_4gb (uint8_t flags)
 {
@@ -33,6 +58,11 @@ paging_new_4gb (uint8_t flags)
   return chunk_4gb;
 }
 
+/**
+ * @brief 
+ * 
+ * @param directory 
+ */
 void
 paging_switch (struct paging_4gb_chunk *directory)
 {

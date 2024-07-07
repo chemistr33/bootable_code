@@ -16,8 +16,8 @@
  * @brief Global heap object used by the kernel.
  *
  * This is the heap object that the kernel uses to allocate and deallocate
- * memory. Loaded into the kernel's data segment at 
- * 
+ * memory. Loaded into the kernel's data segment at
+ *
  */
 struct heap kernel_heap;
 
@@ -65,7 +65,7 @@ kheap_init ()
   // address of the heap, the end address of the heap, and the heap table.
   int res = heap_create (&kernel_heap, (void *)(LAMEOS_HEAP_ADDRESS), end,
                          &kernel_heap_table);
-  
+
   // print a message if the heap creation fails...
   if (res < 0)
     {
@@ -94,12 +94,21 @@ kmalloc (size_t size)
   return heap_malloc (&kernel_heap, size);
 }
 
-void *kzalloc(size_t size)
+/**
+ * @brief variant of kmalloc() that also zero's out the memory using memset().
+ * The 'z' stands for 'zero'.
+ *
+ * @param size the number of bytes requested to be allocated
+ * @return void* pointer to the beginning of the allocated memory, could be
+ * NULL if an error occurs.
+ */
+void *
+kzalloc (size_t size)
 {
-  void *ptr = kmalloc(size);
+  void *ptr = kmalloc (size);
   if (!ptr)
     return 0;
-  memset(ptr, 0x00, size);
+  memset (ptr, 0x00, size);
   return ptr;
 }
 
